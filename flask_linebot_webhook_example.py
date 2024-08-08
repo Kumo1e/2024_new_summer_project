@@ -80,4 +80,5 @@ def handle_message(event):
         )
 
 if __name__ == "__main__":
+    
     app.run(debug=True)  # debug=True 程式碼更動後直接更新到網頁上，不用重新執行 python xxxx.py
