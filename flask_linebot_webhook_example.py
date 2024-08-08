@@ -1,4 +1,5 @@
 from flask import Flask, request, abort
+from flask import render_template
 
 from linebot.v3 import (
     WebhookHandler
@@ -58,6 +59,10 @@ def callback():
 
     return 'OK'
 
+# 測試用，確定 webhook server 有連通
+@app.route("/")
+def say_hello(username=None):
+    return render_template("hello.html",name=username)
 
 # 根據不同的使用者事件(Event)，用不同的方式回應
 # eg. MessageEvent 代表使用者傳輸訊息(包含 純文字、圖片、聲音、貼圖...)
@@ -75,4 +80,4 @@ def handle_message(event):
         )
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)  # debug=True 程式碼更動後直接更新到網頁上，不用重新執行 python xxx.py
