@@ -3,12 +3,13 @@ from openai import OpenAI
 
 def chat_with_gpt(user_message:any, openai_api_key:any) -> str:
     client = OpenAI(api_key=openai_api_key)
+    message = user_message + " 請用幽默風趣的方式回答 不要超過200個字"
 
     chat_completion = client.chat.completions.create(
         messages=[
             {
                 "role": "user",
-                "content": user_message + "請用有感情的方式回答一句話就好",
+                "content": message,
             }
         ],
         model="gpt-3.5-turbo",
