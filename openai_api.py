@@ -5,7 +5,7 @@ chat_history = dict()
 
 def chat_with_gpt(user_id, user_message:any, openai_api_key:any) -> str:
     client = OpenAI(api_key=openai_api_key)
-    message = user_message + " 請用簡單兩句話回答"
+    message = user_message + " "
     # 把使用者的訊息加入對話紀錄中
     if user_id in chat_history:
         chat_history[user_id].append(
