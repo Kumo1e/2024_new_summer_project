@@ -25,7 +25,7 @@ app = Flask(__name__)
 keys = get_secret_and_token()
 handler = WebhookHandler(keys["LINEBOT_SECRET_KEY"])
 configuration = Configuration(access_token=keys["LINEBOT_ACCESS_TOKEN"])
-api_key = access_token=keys["OPENAI_API_KEY"]
+api_key = keys["OPENAI_API_KEY"]
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -60,7 +60,9 @@ def handle_message(event):
     # eg. MessageEvent 代表使用者傳輸訊息(包含 純文字、圖片、聲音、貼圖...)
     # TextMessageContent 代表使用者傳輸的訊息內容是文字
     # 符合兩者條件的事件會被handler_message 所處理
-    response = chat_with_gpt(event.message.text, api_key)
+    user_id = event.source.user_id
+    user_message = event.message.text
+    response = chat_with_gpt(user_id, user_message, api_key)
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
         
