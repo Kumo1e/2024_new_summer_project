@@ -20,12 +20,14 @@ from linebot.v3.webhooks import (
 )
 from get_handle_keys import get_secret_and_token
 from openai_api import chat_with_gpt
+from cwa_opendata_scraper import get_cyties_weather
 
 app = Flask(__name__)
 keys = get_secret_and_token()
 handler = WebhookHandler(keys["LINEBOT_SECRET_KEY"])
 configuration = Configuration(access_token=keys["LINEBOT_ACCESS_TOKEN"])
 api_key = keys["OPENAI_API_KEY"]
+cwa_key = keys["CWA_KEY"]
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -62,7 +64,11 @@ def handle_message(event):
     # 符合兩者條件的事件會被handler_message 所處理
     user_id = event.source.user_id
     user_message = event.message.text
-    response = chat_with_gpt(user_id, user_message, api_key)
+    
+    if '天氣如何' in user_message:
+        response = handle_weather(user_id, user_message, cwa_key)
+    else:
+        response = chat_with_gpt(user_id, user_message, api_key)
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
         
@@ -72,6 +78,24 @@ def handle_message(event):
                 messages=[TextMessage(text=response)]
             )
         )
+
+def handle_weather(user_id, user_message, cwa_key):
+    locations_name = user_message.split()[1:]
+    response = ''
+    if locations_name:
+        weather_data = get_cyties_weather(cwa_key,locations_name)
+        for location in weather_data:
+            response += f"{location}:\n"
+            for weather in sorted(weather_data[location]):
+                response += f"\t\t\t\t{weather}: {weather_data[location][weather]}\n"
+        response.strip()
+        response = chat_with_gpt(user_id, response, api_key, 
+                                extra_propt="請幫我根據上面的內容，生成一段報導，建議使用者的穿搭等等，用100字左右回復")
+    else:
+        response = "請給我你想知道的縣市，請輸入: 天氣如何 臺中市 臺北市"
+
+    return response
+
 
 if __name__ == "__main__":
     
