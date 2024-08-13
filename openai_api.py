@@ -3,9 +3,9 @@ from openai import OpenAI
 from pprint import pprint
 chat_history = dict()
 
-def chat_with_gpt(user_id, user_message:any, openai_api_key:any) -> str:
+def chat_with_gpt(user_id, user_message, openai_api_key, extra_propt = ""):
     client = OpenAI(api_key=openai_api_key)
-    message = user_message + " "
+    message = user_message + extra_propt
     # 把使用者的訊息加入對話紀錄中
     if user_id in chat_history:
         chat_history[user_id].append(
