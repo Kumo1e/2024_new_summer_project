@@ -12,15 +12,18 @@ from linebot.v3.messaging import (
     ApiClient,
     MessagingApi,
     ReplyMessageRequest,
-    TextMessage         # 傳輸回Line官方後台的資料格式
+    TextMessage,         # 傳輸回Line官方後台的資料格式
+    ImageMessage
 )
 from linebot.v3.webhooks import (
     MessageEvent,       # 傳輸過來的方法
-    TextMessageContent  # 使用者傳過來的資料格式
+    TextMessageContent,  # 使用者傳過來的資料格式
+    ImageMessageContent
 )
 from get_handle_keys import get_secret_and_token
 from openai_api import chat_with_gpt
 from cwa_opendata_scraper import get_cyties_weather
+import requests
 
 app = Flask(__name__)
 keys = get_secret_and_token()
@@ -57,7 +60,7 @@ def say_hello(username=None):
     return render_template("hello.html",name=username)
 
 @handler.add(MessageEvent, message=TextMessageContent)
-def handle_message(event):
+def handle_text_message(event):
     # 根據不同的使用者事件(Event)，用不同的方式回應
     # eg. MessageEvent 代表使用者傳輸訊息(包含 純文字、圖片、聲音、貼圖...)
     # TextMessageContent 代表使用者傳輸的訊息內容是文字
@@ -95,6 +98,29 @@ def handle_weather(user_id, user_message, cwa_key):
         response = "請給我你想知道的縣市，請輸入: 天氣如何 臺中市 臺北市"
 
     return response
+
+@handler.add(MessageEvent, message=ImageMessageContent)
+def handle_image_message(event):
+    image_id = event.message.id
+    image_url = f"https://api-data.line.me/v2/bot/message/{image_id}/content"
+    header = {'Authorization': f'Bearer {keys["LINEBOT_ACCESS_TOKEN"]}'}
+    response = requests.get(image_url, headers=header) # 存圖片
+    if response.status_code == 200:
+        with open("image_message.jpeg", "wb") as image_file:
+            image_file.write(response.content)
+        response = "Get image success"
+    else:
+        response = "Get image failed"
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApi(api_client)
+        line_bot_api.reply_message_with_http_info(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[
+                    TextMessage(text=response)
+                    ]
+            )
+        )
 
 
 if __name__ == "__main__":
