@@ -117,8 +117,10 @@ def handle_image_message(event):
             ReplyMessageRequest(
                 reply_token=event.reply_token,
                 messages=[
-                    TextMessage(text=response)
-                    ]
+                    TextMessage(text=response),
+                    ImageMessage(originalContentUrl="image_URL",
+                                 previewImageUrl="image_URL")
+                ]
             )
         )
 
